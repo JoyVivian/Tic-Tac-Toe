@@ -1,5 +1,7 @@
 module player.man_player;
 
+import std.stdio;
+
 import player.player;
 import src.board;
 
@@ -14,6 +16,6 @@ class ManPlayer : Player
 
     public override void play(int location, Board board)
     {
-        board.updateCell(location, mark);
+        board.move(location, mark);
     }
 }

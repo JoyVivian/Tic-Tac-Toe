@@ -3,6 +3,7 @@ module src.board;
 import std.range;
 import std.format;
 import std.stdio;
+import std.algorithm;
 
 /** 
  * This is the class for the current board.
@@ -17,10 +18,10 @@ class Board {
      * Returns: The string of current board status
      */
     string display() {
-        string first = format("%c | %c | %c \n", cells[0], cells[1], cells[2]);
+        string first = format("%c | %c | %c\n", cells[0], cells[1], cells[2]);
         string separator = ("---------------\n");
-        string second = format("%c | %c | %c \n", cells[3], cells[4], cells[5]);
-        string third = format("%c | %c | %c \n", cells[6], cells[7], cells[8]);
+        string second = format("%c | %c | %c\n", cells[3], cells[4], cells[5]);
+        string third = format("%c | %c | %c\n", cells[6], cells[7], cells[8]);
 
         string total = first ~ separator ~ second ~ separator ~ third;
         
@@ -34,7 +35,7 @@ class Board {
      *  - location: the index of the cell
      *  - mark: the mark to put into the cell.
      */
-    void updateCell(int location, char mark) {
+    void updateCell(char[] cur_board, int location, char mark) {
         if (location < 0 || location > 8) {
             throw new Exception("This location is illegal");
         }
@@ -49,17 +50,25 @@ class Board {
     }
 
 
+    void move(int location, char mark) {
+        updateCell(cells, location, mark);
+    }
+
     /** 
      * Check if there is a winner.
      *
      * Returns: the mark for the winner or ''.
      */
-    char is_win() {
-        if (check('X')) {
+    public char is_win() {
+        return check_win(cells);
+    }
+
+    private char check_win(char[] cur_state) {
+        if (check('X', cur_state)) {
             return 'X';
         } 
 
-        if (check('O')) {
+        if (check('O', cur_state)) {
             return 'O';
         }
 
@@ -71,17 +80,21 @@ class Board {
      *
      * Returns: A boolean representa whether it is tie or not.
      */
-    bool is_tie() {
-      if (!has_empty() && is_win() == '\0') {
+    public bool is_tie() {
+        return check_tie(cells);
+    }
+    
+    private bool check_tie(char[] cur_state) {
+        if (!has_empty(cur_state) && check_win(cur_state) == '\0') {
         return true;
       } 
 
       return false;
     }
 
-    bool has_empty() {
+    private bool has_empty(char[] cur_state) {
         for (int i = 0; i < cells.length; i++) {
-            if (cells[i] == '\0') {
+            if (cur_state[i] == '\0') {
                 return true;
             }
         }
@@ -96,7 +109,7 @@ class Board {
      *    - mark: the mark for the winner or ''.
      * Returns: If there is a winner, return the winner's mark; If not, return an empty cahracter.
      */
-    private bool check(char mark) {
+    private bool check(char mark, char[] cells) {
         if (mark != 'X' && mark != 'O') {
             throw new Exception(format("mark can only be X or O, but the input is: %c", mark));
         }
@@ -148,6 +161,100 @@ class Board {
         string total = first ~ separator ~ second ~ separator ~ third;
         
         return total;
+    }
+
+    /** 
+    * Evaluation function for `MinMax` algorithm.
+    * 
+    * PlayerX is always the computer player. 
+    * Return 10 if `X` wins; Return -10 if `O` wins. Otherwise, return 0.
+    */
+    private int evaluate(char[] cur_state) {
+        if (check('X', cur_state)) {
+            return 10;
+        }
+
+        if (check('O', cur_state)) {
+            return -10;
+        }
+
+        if (check_tie(cur_state)) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    private int[] get_legal_moves() {
+        int[] legal_moves;
+
+        for(int i = 0; i < cells.length; i++) {
+            if (cells[i] == '\0') {
+                legal_moves ~= i;
+            }
+        }
+
+        return legal_moves;
+    }
+
+    private char[] get_next_state(char[] cur_state, int act_location, char mark) {
+        char[] next_state = cur_state.dup();
+        updateCell(next_state, act_location, mark);
+        return next_state;
+    }
+
+    private int get_max(char[] cur_state) {
+        int score = evaluate(cur_state);
+
+        // Terminate tests.
+        if (score == 10 || score == -10 || score == 0) {
+            return score;
+        }
+
+        int max_value = -10000;
+
+        foreach(int move; get_legal_moves()) {
+            int tmp_max = get_min(get_next_state(cur_state, move, 'X'));
+            
+            max_value = max(max_value, tmp_max);
+        }
+
+        return max_value;
+    }
+
+    private int get_min(char[] cur_state) {
+        int score = evaluate(cur_state);
+
+        // Terminate tests.
+        if (score == 10 || score == -10 || score == 0) {
+            return score;
+        }
+
+        int min_value = 10000;
+        
+        foreach(int move; get_legal_moves()) {
+            int tmp_min = get_max(get_next_state(cur_state, move, 'O'));
+            
+            min_value = min(min_value, tmp_min);
+        }
+
+        return min_value;
+    }
+
+    public int find_best_move() {
+        int max_value = -10000;
+        int max_act = -1;
+
+        foreach(int move; get_legal_moves()) {
+            int tmp_max = get_min(get_next_state(cells, move, 'X'));
+
+            if(max_value < tmp_max) {
+                max_value = tmp_max;
+                max_act = move;
+            }
+        }
+
+        return max_act;
     }
 }
 

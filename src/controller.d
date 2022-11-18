@@ -10,10 +10,17 @@ import random.random_factory;
 /** 
  * This class manages players' inputs and control the workflow of this game.
  */
-class Controller {
-    void start_game(GameModel game_model, bool is_random) {
-        
-        
+class Controller
+{
+    bool is_computer = false;
+
+    this(bool is_computer)
+    {
+        is_computer = is_computer;
+    }
+
+    void start_game(GameModel game_model, bool is_random)
+    {
         // Genrate a number. `0` represents 'X' starts first. `1` represents `O` starts first.
         RandomFactory random_instance = new RandomFactory();
         int random_val = random_instance.create_random_instance(is_random).get_random_value();
@@ -23,36 +30,40 @@ class Controller {
         char turn = random_val == 0 ? 'X' : 'O';
 
         // While no winner and no tie, continue the game.
-        writeln(game_model.is_win());
-        while(game_model.is_win() == '\0' && !game_model.is_tie()) {
+        while (game_model.is_win() == '\0' && !game_model.is_tie())
+        {
             writeln(format("Now it is %c's turn", turn));
-            writeln("Please choose a location entering number 0-8 showed above:");
-
             writeln(game_model.display());
+            writeln("Please choose a location entering number 0-8 showed above:");
 
             int location = -1;
 
-            readf("%d", &location);
+            readf(" %d", &location);
 
-            while (!game_model.is_valid(location)) {
+            while (!game_model.is_valid(location))
+            {
                 writeln("This location is invalid please enter another location.");
-                readf("%d", &location);
+                readf(" %d", &location);
             }
 
-            game_model.play(location, turn);
-            
+            game_model.play(is_computer, location, turn);
 
             writeln(game_model.display());
+
+            turn = turn == 'X' ? 'O' : 'X';
         }
 
         // Has winner, prompt.
-        if (!game_model.is_win) {
-            writeln(format("%c  wins!", turn));
+        if (game_model.is_win)
+        {
+            char winner = turn == 'X' ? 'O' : 'X';
+            writeln(format("%c  wins!", winner));
         }
 
         // Tie, prompt.
-        if (game_model.is_tie) {
+        if (game_model.is_tie)
+        {
             writeln("This round is tie.");
         }
-    } 
+    }
 }

@@ -12,8 +12,11 @@ class ComputerPlayer : Player
         this.mark = mark;
     }
 
+    /**
+    * Play Tic Tac Toe using MinMax algorithm.
+    */
     public override void play(int location, Board board)
     {
-
+        
     }
 }

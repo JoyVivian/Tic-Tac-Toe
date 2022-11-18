@@ -7,9 +7,9 @@ import player.computer_player;
 class PlayerFactory {
     public Player get_player(bool is_computer, char mark) {
         if (is_computer) {
-            return new ManPlayer(mark);
-        } else {
             return new ComputerPlayer(mark);
+        } else {
+            return new ManPlayer(mark);
         }
     }
 }

@@ -1,5 +1,7 @@
 module src.game_model;
 
+import std.stdio;
+
 import player.player;
 import player.player_factory;
 
@@ -34,9 +36,20 @@ class GameModel {
         return board.show_instruction_board();
     }
 
-    void play(int location, char mark) {
+    void play(bool is_computer, int location, char mark) {
+        int move = -1;
+        if(is_computer) {
+            move = board.find_best_move();
+        } else {
+            move = location;
+        }
+
         if (mark == 'X') {
-            player_x.play(location, board);
+            player_x.play(move, board);
+        } 
+
+        if (mark == 'O') {
+            player_o.play(location, board);
         }
     }
 
